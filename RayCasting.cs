@@ -58,8 +58,8 @@ public class RayCasting
 
         (int X, int Y) mapPosition = ((int)(player.Position.X), (int)(player.Position.Y));
         (float X, float Y) deltaDistance = (
-            (rayDirection.X == 0) ? 1e30f : Math.Abs(1 / rayDirection.X),
-            (rayDirection.Y == 0) ? 1e30f : Math.Abs(1 / rayDirection.Y)
+            (rayDirection.X == 0) ? float.MaxValue : Math.Abs(1 / rayDirection.X),
+            (rayDirection.Y == 0) ? float.MaxValue : Math.Abs(1 / rayDirection.Y)
         );
 
         (float X, float Y) sideDistance = (
