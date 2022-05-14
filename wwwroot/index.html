@@ -23,7 +23,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
     <script>
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl("https://localhost:7105/raycasting", {
+            .withUrl("https://localhost:5001/raycasting", {
                 skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets
             })
