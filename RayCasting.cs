@@ -50,70 +50,57 @@ public class RayCasting
 
     public HitWall CalculateHitWall(Player player, int screenX)
     {
-        int mapX = (int)(player.Position.X);
-        int mapY = (int)(player.Position.Y);
-
         var cameraX = 2 * screenX / (float)screenWidth - 1;
-        var ray = new Vector2(
+        var rayDirection = new Vector2(
             player.Direction.X + player.CameraPlane.X * cameraX,
             player.Direction.Y + player.CameraPlane.Y * cameraX
         );
 
-        float sideDistanceX;
-        float sideDistanceY;
+        (int X, int Y) mapPosition = ((int)(player.Position.X), (int)(player.Position.Y));
+        (float X, float Y) deltaDistance = (
+            (rayDirection.X == 0) ? 1e30f : Math.Abs(1 / rayDirection.X),
+            (rayDirection.Y == 0) ? 1e30f : Math.Abs(1 / rayDirection.Y)
+        );
 
-        float deltaDistanceX = (ray.X == 0) ? 1e30f : Math.Abs(1 / ray.X);
-        float deltaDistanceY = (ray.Y == 0) ? 1e30f : Math.Abs(1 / ray.Y);
+        (float X, float Y) sideDistance = (
+            rayDirection.X < 0
+                ? (player.Position.X - mapPosition.X) * deltaDistance.X
+                : (mapPosition.X + 1.0f - player.Position.X) * deltaDistance.X,
+            rayDirection.Y < 0
+                ? (player.Position.Y - mapPosition.Y) * deltaDistance.Y
+                : (mapPosition.Y + 1.0f - player.Position.Y) * deltaDistance.Y
+        );
 
-        int stepX;
-        int stepY;
+        (int X, int Y) step = (
+            rayDirection.X < 0 ? -GridSize : GridSize,
+            rayDirection.Y < 0 ? -GridSize : GridSize
+        );
 
-        if (ray.X < 0)
+        var hit = false;
+        var hitSideOfTheWall = WallSide.Invalid;
+        while (hit is false)
         {
-            stepX = -GridSize;
-            sideDistanceX = (player.Position.X - mapX) * deltaDistanceX;
-        }
-        else
-        {
-            stepX = GridSize;
-            sideDistanceX = (mapX + 1.0f - player.Position.X) * deltaDistanceX;
-        }
-        if (ray.Y < 0)
-        {
-            stepY = -GridSize;
-            sideDistanceY = (player.Position.Y - mapY) * deltaDistanceY;
-        }
-        else
-        {
-            stepY = GridSize;
-            sideDistanceY = (mapY + 1.0f - player.Position.Y) * deltaDistanceY;
-        }
-
-        int hit = 0;
-        var side = WallSide.Invalid;
-        while (hit == 0)
-        {
-            if (sideDistanceX < sideDistanceY)
+            if (sideDistance.X < sideDistance.Y)
             {
-                sideDistanceX += deltaDistanceX;
-                mapX += stepX;
-                side = WallSide.X;
+                sideDistance.X += deltaDistance.X;
+                mapPosition.X += step.X;
+                hitSideOfTheWall = WallSide.X;
             }
             else
             {
-                sideDistanceY += deltaDistanceY;
-                mapY += stepY;
-                side = WallSide.Y;
+                sideDistance.Y += deltaDistance.Y;
+                mapPosition.Y += step.Y;
+                hitSideOfTheWall = WallSide.Y;
             }
 
-            if (map[mapX, mapY] > 0) hit = 1;
+            if (map[mapPosition.X, mapPosition.Y] > 0) hit = true;
         }
 
-        var perpendicularRayDistance = side == WallSide.X
-            ? sideDistanceX - deltaDistanceX
-            : sideDistanceY - deltaDistanceY;
+        var perpendicularRayDistance = hitSideOfTheWall == WallSide.X
+            ? sideDistance.X - deltaDistance.X
+            : sideDistance.Y - deltaDistance.Y;
 
-        return new HitWall(perpendicularRayDistance, mapX, mapY);
+        return new HitWall(perpendicularRayDistance, mapPosition.X, mapPosition.Y);
     }
 
     public ScreenStripe CalculateScreenStripe(HitWall perpendicularWall)
